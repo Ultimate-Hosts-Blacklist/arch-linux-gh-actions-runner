@@ -1,0 +1,54 @@
+name: Check and Updater the repository
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+
+    steps:
+      - name: Get time
+        id: time
+        run: echo "::set-output name=time::$(date +%F-%T)"
+
+      - name: Set up cache
+        uses: actions/cache@master
+        with:
+          path: /var/cache/pacman/pkg
+          key: pacman-cache-x86_64-${{ steps.time.outputs.time }}
+          restore-keys: pacman-cache-x86_64-
+
+      - name: Install packages
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git jq pacman-contrib openssh
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Check and process
+        run: |
+          set -x
+          current=$(grep -P '^pkgver' PKGBUILD | cut -d= -f2)
+
+          latest=$(curl https://api.github.com/repos/actions/runner/releases | jq -r '.[] | .tag_name' | grep -P 'v[0-9.]*' | head -n1 | cut -c 2-)
+
+          [[ "$current" == "${latest}" ]] && exit 0
+
+          useradd makepkg
+          chown makepkg:root . -R
+          sed "/^pkgver/s/.*/pkgver=${latest}/" -i PKGBUILD
+          su makepkg -c "updpkgsums"
+          su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
+
+          git add .
+          git commit -m "Update to v${latest}"
+
+          git push origin master
