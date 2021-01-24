@@ -49,6 +49,9 @@ jobs:
           su makepkg -c "updpkgsums"
           su makepkg -c "makepkg --printsrcinfo" > .SRCINFO
 
+          git config user.name ${{ secrets.GIT_BOT_NAME }}
+          git config user.email ${{ secrets.GIT_BOT_EMAIL }}
+
           git add .
           git commit -m "Update to v${latest}"
 
