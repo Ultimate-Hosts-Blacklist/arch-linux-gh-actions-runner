@@ -1,4 +1,6 @@
-# Maintainer  : Samuel Williams <samuel@oriontransfer.net>
+# Maintainer : Ultimate Hosts Blacklist contributors
+# Maintainer : Nissar Chababy <contacttafunilrystodcom>
+# Contributor : Samuel Williams <samuel@oriontransfer.net>
 # Contributor : Edvinas Valatka <edacval@gmail.com>
 # Contributor : Jingbei Li <i@jingbei.li>
 
